@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TVs Online</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #111;
+            font-family: Arial, sans-serif;
+            color: white;
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 95vh;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+        
+        .header h1 {
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+        
+        .channel-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        
+        .channel-btn {
+            padding: 15px;
+            background: linear-gradient(135deg, #333 0%, #222 100%);
+            border: 2px solid #444;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .channel-btn:hover {
+            background: linear-gradient(135deg, #444 0%, #333 100%);
+            border-color: #007bff;
+            transform: translateY(-2px);
+        }
+        
+        .channel-btn.active {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border-color: #007bff;
+        }
+        
+        .player-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+        }
+        
+        .player {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            background: #000;
+        }
+        
+        .controls {
+            padding: 15px;
+            background: linear-gradient(135deg, #333 0%, #222 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            font-size: clamp(14px, 2vw, 16px);
+            cursor: pointer;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004494 100%);
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            padding: 12px;
+            background: #222;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: clamp(14px, 2vw, 16px);
+            border-left: 4px solid #007bff;
+        }
+        
+        .category {
+            margin: 20px 0 10px 0;
+            padding: 10px;
+            background: #222;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            color: #007bff;
+        }
+        
+        @media (max-width: 768px) {
+            .channel-selector {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 8px;
+            }
+            
+            .channel-btn {
+                padding: 12px 8px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body onload="loadDefaultChannel()">
+    <div class="container">
+        <div class="header">
+            <h1>📺 TVs Online</h1>
+            <p>Selecione um canal para assistir</p>
+        </div>
+        
+        <div class="channel-selector">
+            <div class="category">🇧🇷 Canais Brasileiros</div>
+            
+            <button class="channel-btn" onclick="changeChannel('TV Cultura', 'https://player-tvcultura.stream.uol.com.br/live/tvcultura.m3u8')">
+                📹 TV Cultura
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('TV Brasil', 'https://streaming03.ebc.com.br/tvbrasil/tvbrasil/playlist.m3u8')">
+                🇧🇷 TV Brasil
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('TV Senado', 'https://play2.pluto.tv/live-prod/5ffbb3246fa3130007d2e0c6/master.m3u8')">
+                🏛️ TV Senado
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('TV Câmara', 'https://stream2.camara.leg.br/TVCAMARA/tvcamara.stream/playlist.m3u8')">
+                🏛️ TV Câmara
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('TV Justiça', 'https://stream1.tjrn.jus.br/tvjustica/smil:tvjustica.smil/playlist.m3u8')">
+                ⚖️ TV Justiça
+            </button>
+            
+            <div class="category">🌍 Canais Internacionais</div>
+            
+            <button class="channel-btn" onclick="changeChannel('NASA TV', 'https://nasa-i.akamaihd.net/hls/live/253565/NTV-Public1/master.m3u8')">
+                🚀 NASA TV
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('France 24', 'https://static.france24.com/live/F24_FR_HI_HLS/live_web.m3u8')">
+                🇫🇷 France 24
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('DW Deutsch', 'https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/index.m3u8')">
+                🇩🇪 DW Deutsch
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('ABC Australia', 'https://abc-iview-mediapackagestreams-2.akamaized.net/out/v1/6e1cc6d25ec4480ea626a8d4a3e6d0a5/index.m3u8')">
+                🇦🇺 ABC Australia
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('TV Peru', 'https://cdnh8.iblups.com/hls/R9WtilpKKB.m3u8')">
+                🇵🇪 TV Peru
+            </button>
+            
+            <div class="category">🎵 Música & Entretenimento</div>
+            
+            <button class="channel-btn" onclick="changeChannel('Retro Music', 'https://stream.ecable.tv/retrotv/retrotv/playlist.m3u8')">
+                🎸 Retro Music
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('Classic Rock', 'https://rockclassicalexa.srf.ch/rockclassic/master.m3u8')">
+                🎸 Classic Rock
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('Radio Italia', 'https://radioitaliatv.akamaized.net/hls/live/2033110/radioitaliatv/master.m3u8')">
+                🇮🇹 Radio Italia
+            </button>
+            
+            <div class="category">🔬 Educação & Ciência</div>
+            
+            <button class="channel-btn" onclick="changeChannel('NASA Media', 'https://nasa-i.akamaihd.net/hls/live/253566/NTV-Public2/master.m3u8')">
+                🔭 NASA Media
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('Explore Org', 'https://mnmedias.api.telequebec.tv/m3u8/29880.m3u8')">
+                🐻 Explore.org
+            </button>
+            
+            <button class="channel-btn" onclick="changeChannel('Science TV', 'https://stream-07.ix7.dailymotion.com/sec(jkL5n4D4Y0y1V8_YY6NpVqVxM-kS4oMqkX5GtK7U6k)/dm/3/x6y1n1t/s/live-2.m3u8')">
+                🔬 Science TV
+            </button>
+        </div>
+
+        <div class="player-container">
+            <video id="myVideo" class="player" controls muted playsinline>
+                Seu navegador não suporta o player de vídeo.
+            </video>
+        </div>
+
+        <div class="status" id="status">Selecione um canal acima</div>
+            
+        <div class="controls">
+            <button onclick="playStream()">▶️ Play</button>
+            <button onclick="pauseStream()">⏸️ Pause</button>
+            <button onclick="fullscreen()">📺 Tela Cheia</button>
+            <button onclick="muteToggle()">🔇 Mute</button>
+        </div>
+    </div>
+
+    <script>
+        // ========== LISTA DE CANAIS ==========
+        const channels = {
+            'TV Cultura': 'https://player-tvcultura.stream.uol.com.br/live/tvcultura.m3u8',
+            'TV Brasil': 'https://streaming03.ebc.com.br/tvbrasil/tvbrasil/playlist.m3u8',
+            'TV Senado': 'https://play2.pluto.tv/live-prod/5ffbb3246fa3130007d2e0c6/master.m3u8',
+            'TV Câmara': 'https://stream2.camara.leg.br/TVCAMARA/tvcamara.stream/playlist.m3u8',
+            'TV Justiça': 'https://stream1.tjrn.jus.br/tvjustica/smil:tvjustica.smil/playlist.m3u8',
+            'NASA TV': 'https://nasa-i.akamaihd.net/hls/live/253565/NTV-Public1/master.m3u8',
+            'France 24': 'https://static.france24.com/live/F24_FR_HI_HLS/live_web.m3u8',
+            'DW Deutsch': 'https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/index.m3u8',
+            'ABC Australia': 'https://abc-iview-mediapackagestreams-2.akamaized.net/out/v1/6e1cc6d25ec4480ea626a8d4a3e6d0a5/index.m3u8',
+            'TV Peru': 'https://cdnh8.iblups.com/hls/R9WtilpKKB.m3u8',
+            'Retro Music': 'https://stream.ecable.tv/retrotv/retrotv/playlist.m3u8',
+            'Classic Rock': 'https://rockclassicalexa.srf.ch/rockclassic/master.m3u8',
+            'Radio Italia': 'https://radioitaliatv.akamaized.net/hls/live/2033110/radioitaliatv/master.m3u8',
+            'NASA Media': 'https://nasa-i.akamaihd.net/hls/live/253566/NTV-Public2/master.m3u8',
+            'Explore Org': 'https://mnmedias.api.telequebec.tv/m3u8/29880.m3u8',
+            'Science TV': 'https://stream-07.ix7.dailymotion.com/sec(jkL5n4D4Y0y1V8_YY6NpVqVxM-kS4oMqkX5GtK7U6k)/dm/3/x6y1n1t/s/live-2.m3u8'
+        };
+
+        // ========== VARIÁVEIS GLOBAIS ==========
+        const video = document.getElementById('myVideo');
+        const status = document.getElementById('status');
+        let hls = null;
+        let currentChannel = '';
+
+        // ========== FUNÇÕES PRINCIPAIS ==========
+        function loadDefaultChannel() {
+            changeChannel('TV Cultura', channels['TV Cultura']);
+        }
+
+        function changeChannel(channelName, streamUrl) {
+            // Atualiza canal atual
+            currentChannel = channelName;
+            
+            // Atualiza botões ativos
+            document.querySelectorAll('.channel-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            status.textContent = `📡 Conectando à ${channelName}...`;
+            loadStream(streamUrl);
+        }
+
+        function loadStream(streamUrl) {
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+
+            video.pause();
+            video.src = '';
+
+            if (Hls.isSupported()) {
+                status.textContent = "🔧 Inicializando player...";
+                
+                hls = new Hls({
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 90
+                });
+
+                hls.loadSource(streamUrl);
+                hls.attachMedia(video);
+
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    status.textContent = `✅ ${currentChannel} carregado! Reproduzindo...`;
+                    playStream();
+                });
+
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    console.error('HLS Error:', data);
+                    status.textContent = `❌ Erro no ${currentChannel}: ${data.details}`;
+                    
+                    if (data.fatal) {
+                        status.textContent = `❌ Canal indisponível. Tente outro.`;
+                    }
+                });
+
+            } else {
+                status.textContent = "❌ Seu navegador não suporta streaming HLS";
+            }
+        }
+
+        function playStream() {
+            if (video.paused) {
+                video.play().then(() => {
+                    status.textContent = `▶️ ${currentChannel} - Reproduzindo`;
+                }).catch(error => {
+                    status.textContent = "❌ Clique em Play para iniciar";
+                });
+            }
+        }
+
+        function pauseStream() {
+            video.pause();
+            status.textContent = "⏸️ Pausado";
+        }
+
+        function fullscreen() {
+            const playerContainer = document.querySelector('.player-container');
+            
+            if (playerContainer.requestFullscreen) {
+                playerContainer.requestFullscreen();
+            } else if (playerContainer.webkitRequestFullscreen) {
+                playerContainer.webkitRequestFullscreen();
+            }
+        }
+
+        function muteToggle() {
+            video.muted = !video.muted;
+            status.textContent = video.muted ? "🔇 Mudo" : "🔊 Som ativado";
+        }
+
+        // ========== EVENT LISTENERS ==========
+        video.addEventListener('waiting', () => {
+            status.textContent = "⏳ Buffering...";
+        });
+
+        video.addEventListener('playing', () => {
+            status.textContent = `▶️ ${currentChannel} - Reproduzindo`;
+        });
+
+    </script>
+</body>
+</html>
